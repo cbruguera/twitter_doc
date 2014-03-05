@@ -14,7 +14,7 @@ Usuarios
 ~~~~~~~~
 
 * Acceso mediante usuario y contraseña
-* Posibilidad de varios usuarios (creados mediante el admin), con su espacio separado de canales y configuraciones
+* Posibilidad de varios usuarios (creados manualmente mediante el admin), con su espacio separado de canales y configuraciones
 * Posibilidad de registrar un número indefinido de "canales", que corresponden a cuentas autenticadas de twitter
 
 
@@ -62,7 +62,7 @@ Otras características no-interactivas
 
 * Prevención de update limit
     - Los canales hacen retweet automático con una separación mínima de un minuto, para evitar la publicación en ráfaga
-    - Cada tweet es retrasado lo suficiente para cumplic con la separación mínima entre publicaciones
+    - Cada tweet es retrasado lo suficiente para cumplir con la separación mínima entre publicaciones
     - Si el retraso necesario de un tweet es mayor a 15 minutos, éste se descarta automáticamente
     - Si el canal llega a la condición de *update limit*, éste detiene el reenvío por ventanas progresivas de tiempo (5 min, 10 min, 15 min...) hasta que logre enviar exitosamente
     
@@ -81,7 +81,7 @@ Esto es un estimado según la cantidad de correos recibidos (115), asumiendo un 
 Probables características futuras
 ---------------------------------
 
-A continuación, se presenta un listado de dudas y características probables para implementar por cada módulo.
+A continuación, se presenta un listado de dudas y características probables para implementar en próximas fases.
 
 
 Usuarios
@@ -89,7 +89,7 @@ Usuarios
 
 * Roles: administrador, cliente, colaborador...
 * Registro de usuarios
-* Perfil del usuario
+* Página de perfil del usuario
 * Cambio de contraseña
 * Super usuario (para el uso de posma)
 * Poner un límite de canales para los usuarios de tipo cliente
@@ -102,7 +102,7 @@ Retweet automático
     - Qué representa un modo? Qué parámetros lo definen?
     - Son los modos una entidad configurable en el sistema?
     - Puede simularse los modos a través de funcionalidades existentes (horarios de publicación y otros parámetros de configuración)
-* Permitir mentions sólo de seguidores
+* Opción para permitir mentions de cualquiera o sólo de seguidores
 * Auto-respuestas según contenido
     - Cuáles son los parámetros para la activación de auto-respuestas? (Triggers, Bloqueos, otros...)
     - Aplica para DM únicamente o también para mentions?
@@ -113,6 +113,12 @@ Retweet automático
     - las palabras simples serán comparadas omitiendo espacios y caracteres especiales del tweet recibido
     - Existe una manera más inteligente de hacer las comparaciones?
         + Darle al usuario opciones de comparación por cada palabra clave ?
+* Posibilidad de definir y manejar triggers, retenedores y bloqueadores en masa (para varios canales)
+
+
+Hashtags
+~~~~~~~~
+
 * Detallar requerimientos de la funcionalidad de hashtags
 
 
@@ -168,7 +174,30 @@ Scanner
 
 
 Estadísticas y reportes
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 * Falta definir qué estadísticas se requieren, por canal y globalmente
 * En base a los datos que se requieran, se diseñarán las vistas de dashboard y los posibles reportes estadísticos
+
+
+Optimizaciones posibles a la arquitectura
+-----------------------------------------
+
+Adicional a los requerimientos funcionales planteados por el cliente, el equipo de desarrollo de Canales Twitter ha 
+identificado áreas de posible optimización en cuanto a la arquitectura del sistema.
+
+Algunas propuestas son:
+
+**Reestructurar la arquitectura de colas de rabbitmq**: se está considerando la opción de separar la cola de tareas de
+filtrado de una nueva cola únicamente para tareas de envío de tweets.
+
+**Re-ingeniería del flujo de filtrado**: convertir todo el código de filtrado en una única tarea.
+
+**Eliminar el almacenamiento de tweets innecesarios**: Actualmente se están guardando *todos* los tweets de entrada. 
+La base de datos crece a una velocidad extrema, y se está gastando tiempo de procesamiento en escrituras innecesarias
+a disco duro.
+
+**Cambio de esquema para prevención de update limit**: actualmente los mensajes son separados por un minuto, encolándose
+hasta un máximo de 15 minutos, lo cual genera publicaciones con leves retrasos. Una opción es descartar tweets durante
+la ventana de tiempo en cuestión.
+
